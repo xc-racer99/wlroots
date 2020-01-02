@@ -148,8 +148,10 @@ bool wlr_egl_init(struct wlr_egl *egl, EGLenum platform, void *remote_display,
 	if (platform == EGL_PLATFORM_SURFACELESS_MESA) {
 		assert(remote_display == NULL);
 		egl->display = eglGetPlatformDisplayEXT(platform, EGL_DEFAULT_DISPLAY, NULL);
-	} else {
+	} else if (platform) {
 		egl->display = eglGetPlatformDisplayEXT(platform, remote_display, NULL);
+	} else {
+		egl->display = eglGetDisplay(NULL);
 	}
 	if (egl->display == EGL_NO_DISPLAY) {
 		wlr_log(WLR_ERROR, "Failed to create EGL display");
@@ -245,10 +247,30 @@ bool wlr_egl_init(struct wlr_egl *egl, EGLenum platform, void *remote_display,
 		}
 	}
 
-	if (!eglMakeCurrent(egl->display, EGL_NO_SURFACE, EGL_NO_SURFACE,
-			egl->context)) {
-		wlr_log(WLR_ERROR, "Failed to make EGL context current");
-		goto error;
+	/*
+	 * Surface must be created here for fbdev drivers so gl* functions work
+	 */
+	if (!platform) {
+		egl->surface = eglCreateWindowSurface(egl->display, egl->config,
+			(EGLNativeWindowType) NULL, NULL);
+		if (egl->surface == EGL_NO_SURFACE) {
+			wlr_log(WLR_ERROR, "Failed to create window");
+			goto error;
+		}
+
+		wlr_log(WLR_ERROR, "EGL surface handle is %p, context %p", egl->surface, egl->context);
+
+		if (!eglMakeCurrent(egl->display, egl->surface, egl->surface,
+				egl->context)) {
+			wlr_log(WLR_ERROR, "Failed to make EGL context current");
+			goto error;
+		}
+	} else {
+		if (!eglMakeCurrent(egl->display, EGL_NO_SURFACE, EGL_NO_SURFACE,
+				egl->context)) {
+			wlr_log(WLR_ERROR, "Failed to make EGL context current");
+			goto error;
+		}
 	}
 
 	return true;
@@ -332,6 +354,10 @@ static int egl_get_buffer_age(struct wlr_egl *egl, EGLSurface surface) {
 
 bool wlr_egl_make_current(struct wlr_egl *egl, EGLSurface surface,
 		int *buffer_age) {
+	if (egl->platform == 0 && surface == EGL_NO_SURFACE) {
+		wlr_log(WLR_INFO, "%s called for fbdev with no valid surface", __func__);
+	}
+
 	if (!eglMakeCurrent(egl->display, surface, surface, egl->context)) {
 		wlr_log(WLR_ERROR, "eglMakeCurrent failed");
 		return false;

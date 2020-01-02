@@ -537,9 +537,11 @@ struct wlr_renderer *wlr_gles2_renderer_create(struct wlr_egl *egl) {
 	wlr_renderer_init(&renderer->wlr_renderer, &renderer_impl);
 
 	renderer->egl = egl;
-	if (!wlr_egl_make_current(renderer->egl, EGL_NO_SURFACE, NULL)) {
-		free(renderer);
-		return NULL;
+	if (egl->platform) {
+		if (!wlr_egl_make_current(renderer->egl, EGL_NO_SURFACE, NULL)) {
+			free(renderer);
+			return NULL;
+		}
 	}
 
 	renderer->exts_str = (const char *)glGetString(GL_EXTENSIONS);

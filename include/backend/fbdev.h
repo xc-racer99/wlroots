@@ -13,8 +13,8 @@ struct wlr_fbdev_backend {
 	struct wl_display *display;
 	struct wl_list outputs;
 	size_t last_output_num;
-	struct wl_list input_devices;
 	struct wl_listener display_destroy;
+	struct udev *udev;
 	bool started;
 };
 
@@ -24,15 +24,10 @@ struct wlr_fbdev_output {
 	struct wlr_fbdev_backend *backend;
 	struct wl_list link;
 
-	void *egl_surface;
 	struct wl_event_source *frame_timer;
-	int frame_delay; // ms
-};
-
-struct wlr_fbdev_input_device {
-	struct wlr_input_device wlr_input_device;
-
-	struct wlr_fbdev_backend *backend;
+	int refresh; // Hz
+	int width;
+	int height;
 };
 
 struct wlr_fbdev_backend *fbdev_backend_from_backend(

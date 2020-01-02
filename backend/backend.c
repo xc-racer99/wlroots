@@ -191,10 +191,7 @@ static struct wlr_backend *attempt_fbdev_backend(
 		return NULL;
 	}
 
-	size_t outputs = parse_outputs_env("WLR_FBDEV_OUTPUTS");
-	for (size_t i = 0; i < outputs; ++i) {
-		wlr_fbdev_add_output(backend, 1280, 720);
-	}
+	wlr_fbdev_add_outputs(backend);
 
 	return backend;
 }

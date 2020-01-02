@@ -1,5 +1,5 @@
-eglGetPlatformDisplayEXT
-eglCreatePlatformWindowSurfaceEXT
+-eglGetPlatformDisplayEXT
+-eglCreatePlatformWindowSurfaceEXT
 -eglCreateImageKHR
 -eglDestroyImageKHR
 -eglQueryWaylandBufferWL

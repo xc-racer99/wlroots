@@ -28,6 +28,7 @@ struct wlr_egl {
 	EGLDisplay display;
 	EGLConfig config;
 	EGLContext context;
+	EGLSurface surface;
 
 	const char *exts_str;
 
