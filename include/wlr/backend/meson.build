@@ -1,5 +1,6 @@
 install_headers(
 	'drm.h',
+	'fbdev.h',
 	'headless.h',
 	'interface.h',
 	'libinput.h',

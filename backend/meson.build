@@ -8,6 +8,8 @@ backend_files = files(
 	'drm/properties.c',
 	'drm/renderer.c',
 	'drm/util.c',
+	'fbdev/backend.c',
+	'fbdev/output.c',
 	'headless/backend.c',
 	'headless/input_device.c',
 	'headless/output.c',

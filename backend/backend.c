@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <wayland-server-core.h>
 #include <wlr/backend/drm.h>
+#include <wlr/backend/fbdev.h>
 #include <wlr/backend/headless.h>
 #include <wlr/backend/interface.h>
 #include <wlr/backend/libinput.h>
@@ -183,6 +184,21 @@ static struct wlr_backend *attempt_noop_backend(struct wl_display *display) {
 	return backend;
 }
 
+static struct wlr_backend *attempt_fbdev_backend(
+		struct wl_display *display, wlr_renderer_create_func_t create_renderer_func) {
+	struct wlr_backend *backend = wlr_fbdev_backend_create(display, create_renderer_func);
+	if (backend == NULL) {
+		return NULL;
+	}
+
+	size_t outputs = parse_outputs_env("WLR_FBDEV_OUTPUTS");
+	for (size_t i = 0; i < outputs; ++i) {
+		wlr_fbdev_add_output(backend, 1280, 720);
+	}
+
+	return backend;
+}
+
 static struct wlr_backend *attempt_drm_backend(struct wl_display *display,
 		struct wlr_backend *backend, struct wlr_session *session,
 		wlr_renderer_create_func_t create_renderer_func) {
@@ -226,6 +242,8 @@ static struct wlr_backend *attempt_backend_by_name(struct wl_display *display,
 #endif
 	} else if (strcmp(name, "noop") == 0) {
 		return attempt_noop_backend(display);
+	} else if (strcmp(name, "fbdev") == 0) {
+		return attempt_fbdev_backend(display, create_renderer_func);
 	} else if (strcmp(name, "drm") == 0 || strcmp(name, "libinput") == 0) {
 		// DRM and libinput need a session
 		if (!*session) {
